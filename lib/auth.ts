@@ -27,17 +27,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       authorize: async (credentials) => {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error("Missing credentials");
+          return null;
         };
         const existingUser = await prisma.user.findUnique({
           where : {email: credentials.email as string}
         })
         if(!existingUser) {
-          throw new Error("User not found");
+          return null;
         }
         const isValid = await bcrypt.compare(credentials.password as string, existingUser.password);
         if(!isValid) {
-          throw new Error("Invalid credentials");
+          return null;
         }
         return {
           id: String(existingUser.id),
@@ -64,5 +64,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return session;
     }
+  },
+  pages: {
+    signIn: "/login"
   }
 })
