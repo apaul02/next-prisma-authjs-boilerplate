@@ -2,13 +2,14 @@
 
 import { AuthError } from "next-auth";
 import { signIn } from "../auth";
+import { DEFAULT_REDIRECT_AFTER_LOGIN } from "@/routes";
 
 export async function login(email: string, password: string) {
   try {
     await signIn("credentials", {
       email,
       password,
-      redirectTo: "/dashboard"
+      redirectTo: DEFAULT_REDIRECT_AFTER_LOGIN
     })
   }catch(error) {
     if(error instanceof AuthError) {

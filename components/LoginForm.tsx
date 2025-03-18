@@ -11,6 +11,7 @@ import { ChevronRight, Github } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { signIn } from "next-auth/react"
+import { DEFAULT_REDIRECT_AFTER_LOGIN } from "@/routes"
 
 
 const loginSchema = z.object({
@@ -51,7 +52,7 @@ export default function LoginForm() {
   async function handleGithubLogin() {
     console.log("GitHub login initiated");
     signIn("github",{
-      redirectTo: "/dashboard"
+      redirectTo: DEFAULT_REDIRECT_AFTER_LOGIN
     });
     // Add your GitHub authentication logic here
   }
