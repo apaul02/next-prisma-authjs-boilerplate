@@ -3,7 +3,7 @@
 import bcrypt from "bcryptjs"
 import { prisma } from "../db"
 
-export async function signup(name: string, email: string, password: string, username: string) {
+export async function signup(name: string, email: string, password: string) {
   try {
     const existingUser = await prisma.user.findUnique({
       where: {
@@ -19,7 +19,6 @@ export async function signup(name: string, email: string, password: string, user
         name,
         email,
         password: hashedPassword,
-        username
       }
     })
     return user

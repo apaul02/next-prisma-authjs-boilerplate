@@ -10,9 +10,8 @@ import { Card, CardContent, CardHeader } from "./ui/card"
 import { ChevronRight, Github } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { AuthError } from "next-auth"
-import { signIn } from "@/lib/auth"
-import { login } from "@/lib/actions/login"
+import { signIn } from "next-auth/react"
+
 
 const loginSchema = z.object({
   email: z.string().email({
@@ -34,15 +33,11 @@ export default function LoginForm() {
   })
   async function onSubmit(values: z.infer<typeof loginSchema>) {
     try {
-      const res = await login(values.email, values.password);
-      if(res?.error) {
-        form.setError("email", {
-          type: "manual",
-          message: res.error
-        })
-      } else {
-        router.push("/dashboard")
-      }
+      const res = await signIn("credentials", {
+        email: values.email,
+        password: values.password,
+        redirectTo: "/dashboard"
+      })
     }catch(err) {
       console.log(err);
     }
@@ -55,6 +50,9 @@ export default function LoginForm() {
 
   async function handleGithubLogin() {
     console.log("GitHub login initiated");
+    signIn("github",{
+      redirectTo: "/dashboard"
+    });
     // Add your GitHub authentication logic here
   }
 

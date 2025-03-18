@@ -2,24 +2,17 @@ import NextAuth, { type DefaultSession } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "./db";
+import GitHub from "next-auth/providers/github"
 
-declare module "next-auth" {
-  interface Session {
-    user: {
-      id: string;
-      email: string;
-      name: string;
-      username: string;
-    } & DefaultSession["user"];
-  }
-  interface User {
-    username: string;
-  }
-}
+
 
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
+    GitHub({
+      clientId: process.env.GITHUB_ID,
+      clientSecret: process.env.GITHUB_SECRET
+    }),
     Credentials({
       credentials: {
         email: { label: "email", type: "text", placeholder: ""},
@@ -32,35 +25,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const existingUser = await prisma.user.findUnique({
           where : {email: credentials.email as string}
         })
-        if(!existingUser) {
+        if(!existingUser || !existingUser.password) {
           return null;
         }
         const isValid = await bcrypt.compare(credentials.password as string, existingUser.password);
         if(!isValid) {
           return null;
         }
-        return {
-          id: String(existingUser.id),
-          email: existingUser.email,
-          name: existingUser.name,
-          username: existingUser.username
-        }
+        return existingUser;
       }
     })
   ],
   secret: process.env.AUTH_SECRET,
   callbacks: {
-    jwt({ token, user}) {
-      if(user) {
-        token.id = user.id;
-        token.username = user.username;
-      }
+    jwt({ token }) {
       return token;
     },
     session({ session, token, user}) {
-      if(token && session.user) {
-        session.user.id = token.id as string;
-        session.user.username = token.username as string;
+      if(token.sub && session.user) {
+        session.user.id = token.sub;
       }
       return session;
     }

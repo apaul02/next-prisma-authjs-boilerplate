@@ -19,9 +19,6 @@ const signupSchema = z.object({
   name: z.string().min(2, {
     message: "Name must be at least 2 characters"
   }),
-  username: z.string().min(2, {
-    message: "Username must be at least 2 characters"
-  }),
   password: z.string().min(8, {
     message: "Password must be at least 8 characters."
   }),
@@ -38,14 +35,13 @@ export function SignupForm() {
     defaultValues: {
       email: "",
       name: "",
-      username: "",
       password: "",
       confirmPassword: ""
     }
   })
 
   async function onSubmit(values: z.infer<typeof signupSchema>) {
-    const user = await signup(values.name, values.email, values.password, values.username)
+    const user = await signup(values.name, values.email, values.password)
   }
   async function handleGoogleLogin() {
     console.log("Google login initiated");
@@ -77,25 +73,6 @@ export function SignupForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base sm:text-lg">Email</FormLabel>
-                    <FormControl>
-                      <Input 
-                        className={`h-10 text-sm sm:text-base ${
-                          form.formState.errors.email ? "border-red-500" : ""
-                        }`} 
-                        placeholder="john@example.com" 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage className="text-sm sm:text-base" />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-base sm:text-lg">Username</FormLabel>
                     <FormControl>
                       <Input 
                         className={`h-10 text-sm sm:text-base ${
