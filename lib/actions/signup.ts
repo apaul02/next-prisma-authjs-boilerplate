@@ -2,6 +2,8 @@
 
 import bcrypt from "bcryptjs"
 import { prisma } from "../db"
+import { generateVerificationToken } from "../tokens"
+import { sendVerificationEmail } from "../mail"
 
 export async function signup(name: string, email: string, password: string) {
   try {
@@ -11,7 +13,7 @@ export async function signup(name: string, email: string, password: string) {
       }
     })
     if (existingUser) {
-      throw new Error("User already exists")
+      return {error: "User already exists"}
     }
     const hashedPassword = await bcrypt.hash(password, 10)
     const user = await prisma.user.create({
@@ -21,8 +23,12 @@ export async function signup(name: string, email: string, password: string) {
         password: hashedPassword,
       }
     })
-    return user
+    const verificationToken  = await generateVerificationToken(email);
+
+    await sendVerificationEmail(verificationToken.email, verificationToken.token);
+
+    return { success: "Verification email sent" }
   }catch(err) {
-    console.log(err)
+    return { error: "Something went wrong" }
   }
 }

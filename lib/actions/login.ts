@@ -3,14 +3,32 @@
 import { AuthError } from "next-auth";
 import { signIn } from "../auth";
 import { DEFAULT_REDIRECT_AFTER_LOGIN } from "@/routes";
+import { prisma } from "../db";
+import { generateVerificationToken } from "../tokens";
+import { sendVerificationEmail } from "../mail";
 
 export async function login(email: string, password: string) {
   try {
+    const existingUser = await prisma.user.findUnique({
+      where : { email }
+    })
+
+    if(!existingUser || !existingUser.email || !existingUser.password) {
+      return { error: "User not found" }
+    }
+
+    if(!existingUser.emailVerified) {
+      const verificationToken = await generateVerificationToken(existingUser.email);
+      await sendVerificationEmail(verificationToken.email, verificationToken.token);
+      return { success : "Verification email sent" }
+    }
+
     await signIn("credentials", {
       email,
       password,
       redirectTo: DEFAULT_REDIRECT_AFTER_LOGIN
     })
+    return { success : "Login successful" }
   }catch(error) {
     if(error instanceof AuthError) {
       switch(error.message) {

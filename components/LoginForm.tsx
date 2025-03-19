@@ -7,12 +7,14 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "./ui/input"
 import { Button } from "./ui/button"
 import { Card, CardContent, CardHeader } from "./ui/card"
-import { ChevronRight, Github } from "lucide-react"
+import { ChevronRight, Github, AlertCircle, CheckCircle2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { signIn } from "next-auth/react"
 import { DEFAULT_REDIRECT_AFTER_LOGIN } from "@/routes"
-
+import { login } from "@/lib/actions/login"
+import { useState } from "react"
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert"
 
 const loginSchema = z.object({
   email: z.string().email({
@@ -25,6 +27,11 @@ const loginSchema = z.object({
 
 export default function LoginForm() {
   const router = useRouter();
+  const [status, setStatus] = useState<{
+    type: 'error' | 'success' | null;
+    message: string;
+  }>({ type: null, message: '' });
+  
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -32,15 +39,32 @@ export default function LoginForm() {
       password: ""
     }
   })
+  
   async function onSubmit(values: z.infer<typeof loginSchema>) {
     try {
-      const res = await signIn("credentials", {
-        email: values.email,
-        password: values.password,
-        redirectTo: "/dashboard"
-      })
-    }catch(err) {
+      setStatus({ type: null, message: '' });
+      const res = await login(values.email, values.password);
+      if (res.success) {
+        setStatus({ 
+          type: 'success', 
+          message: res.success 
+        });
+        // Redirect after a short delay
+        setTimeout(() => {
+          router.push(DEFAULT_REDIRECT_AFTER_LOGIN);
+        }, 1500);
+      } else {
+        setStatus({ 
+          type: 'error', 
+          message: res.error || 'Login failed. Please try again.' 
+        });
+      }
+    } catch(err) {
       console.log(err);
+      setStatus({ 
+        type: 'error', 
+        message: 'An unexpected error occurred. Please try again.' 
+      });
     }
   }
 
@@ -54,7 +78,6 @@ export default function LoginForm() {
     signIn("github",{
       redirectTo: DEFAULT_REDIRECT_AFTER_LOGIN
     });
-    // Add your GitHub authentication logic here
   }
 
   return (
@@ -68,6 +91,25 @@ export default function LoginForm() {
           </div>
         </CardHeader>
         <CardContent>
+          {status.type && (
+            <Alert 
+              variant={status.type === 'error' ? 'destructive' : 'default'} 
+              className={`mb-4 ${status.type === 'success' ? 'bg-green-50 text-green-800 border-green-200' : ''}`}
+            >
+              {status.type === 'error' ? (
+                <AlertCircle className="h-4 w-4" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+              )}
+              <AlertTitle className="text-sm font-medium">
+                {status.type === 'error' ? 'Error' : 'Success'}
+              </AlertTitle>
+              <AlertDescription className="text-sm">
+                {status.message}
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField

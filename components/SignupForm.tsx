@@ -7,10 +7,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "./ui/input"
 import { Button } from "./ui/button"
 import { Card, CardContent, CardHeader } from "./ui/card"
-import { ChevronRight, CircleCheckBig, Github } from "lucide-react"
+import { ChevronRight, CircleCheckBig, Github, X } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { signup } from "@/lib/actions/signup"
+import { useState } from "react"
 
 const signupSchema = z.object({
   email: z.string().email({
@@ -30,6 +31,8 @@ const signupSchema = z.object({
 
 export function SignupForm() {
   const router = useRouter()
+  const [message, setMessage] = useState<string | null>(null)
+  const [isError, setIsError] = useState(false)
   const form = useForm<z.infer<typeof signupSchema>>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -41,7 +44,15 @@ export function SignupForm() {
   })
 
   async function onSubmit(values: z.infer<typeof signupSchema>) {
-    const user = await signup(values.name, values.email, values.password)
+    const response = await signup(values.name, values.email, values.password)
+    if(response.error) {
+      setMessage(response.error)
+      setIsError(true)
+    } else {
+      setMessage(response.success || null)
+      setIsError(false)
+      form.reset()
+    }
   }
   async function handleGoogleLogin() {
     console.log("Google login initiated");
@@ -131,6 +142,18 @@ export function SignupForm() {
                   </FormItem>
                 )}
               />
+              {message && (
+                <div className={`flex items-center gap-2 text-sm sm:text-base ${
+                  isError ? "text-red-500" : "text-green-500"
+                }`}>
+                  {isError ? (
+                    <X size={20} />
+                  ) : (
+                    <CircleCheckBig size={20} />
+                  )}
+                  <span>{message}</span>
+                </div>
+              )}
               <Button className="w-full h-10 text-base sm:text-lg group p-5 py-6 cursor-pointer hover:shadow-[0_0_15px_rgba(59,130,246,0.8)] shadow-none hover:ring-3 ring-blue-500 transition-all ease-in-out duration-300" type="submit">Login
                 <ChevronRight className="group-hover:translate-x-1 transition-all duration-300" />
               </Button>
