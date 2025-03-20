@@ -26,7 +26,7 @@ export async function login(email: string, password: string) {
     await signIn("credentials", {
       email,
       password,
-      redirectTo: DEFAULT_REDIRECT_AFTER_LOGIN
+      redirect: false
     })
     return { success : "Login successful" }
   }catch(error) {

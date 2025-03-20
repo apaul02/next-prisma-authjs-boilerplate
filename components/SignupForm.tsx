@@ -12,22 +12,9 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { signup } from "@/lib/actions/signup"
 import { useState } from "react"
+import { signupSchema } from "@/lib/schemas"
 
-const signupSchema = z.object({
-  email: z.string().email({
-    message: "Please enter a valid Email"
-  }),
-  name: z.string().min(2, {
-    message: "Name must be at least 2 characters"
-  }),
-  password: z.string().min(8, {
-    message: "Password must be at least 8 characters."
-  }),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ['confirmPassword']
-})
+
 
 export function SignupForm() {
   const router = useRouter()

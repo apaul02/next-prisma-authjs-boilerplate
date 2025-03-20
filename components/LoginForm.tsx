@@ -15,15 +15,9 @@ import { DEFAULT_REDIRECT_AFTER_LOGIN } from "@/routes"
 import { login } from "@/lib/actions/login"
 import { useState } from "react"
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert"
+import { loginSchema } from "@/lib/schemas"
 
-const loginSchema = z.object({
-  email: z.string().email({
-    message: "Please enter a valid Email"
-  }),
-  password: z.string().min(8, {
-    message: "Password must be at least 8 characters."
-  }),
-})
+
 
 export default function LoginForm() {
   const router = useRouter();
@@ -60,10 +54,10 @@ export default function LoginForm() {
         });
       }
     } catch(err) {
-      console.log(err);
+      console.error(err);
       setStatus({ 
         type: 'error', 
-        message: 'An unexpected error occurred. Please try again.' 
+        message: 'Yea cooked' 
       });
     }
   }
@@ -142,6 +136,15 @@ export default function LoginForm() {
                   </FormItem>
                 )}
               />
+              
+              <div className="flex justify-end">
+                <Link href="/reset-password">
+                  <span className="text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors">
+                    Forgot Password?
+                  </span>
+                </Link>
+              </div>
+              
               <Button className="w-full h-10 text-base sm:text-lg group p-5 py-6 cursor-pointer hover:shadow-[0_0_15px_rgba(59,130,246,0.8)] shadow-none hover:ring-3 ring-blue-500 transition-all ease-in-out duration-300" type="submit">Login
                 <ChevronRight className="group-hover:translate-x-1 transition-all duration-300" />
               </Button>
